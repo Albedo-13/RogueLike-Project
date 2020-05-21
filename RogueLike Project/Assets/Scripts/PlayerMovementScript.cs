@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovementScript : MonoBehaviour {
 
@@ -13,10 +15,17 @@ public class PlayerMovementScript : MonoBehaviour {
     public GameObject DeadBody;
     public static int HealthPoints;
 
+    public Text HealthTextBlock;
+
 	// Use this for initialization
 	void Start () {
         HealthPoints = 100;
         rb = GetComponent<Rigidbody2D>();
+
+        GameObject HUI = GameObject.Find("HealthUI");
+        HealthTextBlock = HUI.GetComponent<Text>();
+
+        HealthTextBlock.text = "100";
 	}
 	
 	// Update is called once per frame
@@ -38,10 +47,23 @@ public class PlayerMovementScript : MonoBehaviour {
             pos.z = -1;
 
             Instantiate(DeadBody, new Vector3(transform.position.x, transform.position.y, pos.z), transform.rotation);
-            //Debug.Break();
-            UnityEditor.EditorApplication.isPlaying = false;
+            SceneManager.LoadScene(2);
             Destroy(gameObject);
         }
+    }
+
+    private void HealthAdd(int health)
+    {
+        int temp = int.Parse(HealthTextBlock.text);
+        temp += health;
+        HealthTextBlock.text = temp.ToString();
+    }
+
+    private void HealthRemove(int health)
+    {
+        int temp = int.Parse(HealthTextBlock.text);
+        temp -= health;
+        HealthTextBlock.text = temp.ToString();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -51,7 +73,9 @@ public class PlayerMovementScript : MonoBehaviour {
             var pos = DeadBody.transform.position;
             pos.z = -1;
 
+            HealthRemove(25);
             HealthPoints -= 25;
+            
             Instantiate(Blood, new Vector3(transform.position.x, transform.position.y, pos.z), transform.rotation);
         }
     }
@@ -61,7 +85,7 @@ public class PlayerMovementScript : MonoBehaviour {
         if (collision.gameObject.tag == "Finish" && GameObject.FindGameObjectsWithTag("Bot").Length <= 2)
         {
             Debug.Log("Finished level!");
-            UnityEditor.EditorApplication.isPlaying = false;
+            SceneManager.LoadScene(2);
         }
         else if (GameObject.FindGameObjectsWithTag("Bot").Length > 2)
         {
@@ -69,8 +93,8 @@ public class PlayerMovementScript : MonoBehaviour {
         }
         if (collision.gameObject.tag == "Heal")
         {
+            HealthAdd(50);
             HealthPoints += 50;
-            Debug.Log("Healed +50: Total:" + HealthPoints);
             Destroy(collision.gameObject);
         }
     }
